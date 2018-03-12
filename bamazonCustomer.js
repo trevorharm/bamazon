@@ -21,16 +21,18 @@ connection.connect(function (err) {
 function startApp() {
     connection.query("SELECT * FROM products", function (err, results) {
         if (err) throw err;
+        
         // show items, prompt the user for the ID they'd like to buy
+        console.log(results);
         inquirer
             .prompt([
                 {
                     name: "choice",
-                    type: "rawlist",
+                    type: "list",
                     choices: function () {
                         var choiceArray = [];
                         for (var i = 0; i < results.length; i++) {
-                            choiceArray.push(results[i].item_name);
+                            choiceArray.push(results[i]);
                         }
                         return choiceArray;
                     },
@@ -77,5 +79,6 @@ function startApp() {
                     startApp();
                 }
             })
-    });
-};
+        }
+    )};
+  
