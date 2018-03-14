@@ -78,12 +78,12 @@ var startApp = function () {
 					]);
 				setTimeout(function () {
 					startApp();
-				}, 5000);
+				}, 3000);
 			} else {
 				console.log("Sorry, we currently do not have that many in stock, please check back later.");
 				setTimeout(function () {
 					startApp();
-				}, 5000);
+				}, 3000);
 			}
 		});
 	});
