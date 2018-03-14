@@ -22,7 +22,7 @@ connection.connect(function (err) {
 function ShowProducts(res) {
 	var table = new Table({
 		head: ['Item ID', 'Product Name', 'Cost']
-		, colWidths: [10, 45, 10]
+		, colWidths: [10, 45, 15]
 	});
 	for (var i = 0; i < res.length; i++) {
 		table.push([res[i].item_id, res[i].product_name, res[i].price]);
@@ -65,7 +65,8 @@ var startApp = function () {
 
 			// if quantity selected does not exceed quantity in stock, update MYSQL
 			if (updatedQuantity >= 0) {
-				console.log("Your purchase was a success! Thank you for your business");
+				console.log("Your purchase was a success! Thank you for your business.");
+				console.log("Can we interest you in anything else?");
 				connection.query(
 					'UPDATE products SET ? WHERE ?', [
 						{
@@ -75,10 +76,14 @@ var startApp = function () {
 							item_id: itemChoice
 						}
 					]);
-				startApp();
+				setTimeout(function () {
+					startApp();
+				}, 5000);
 			} else {
 				console.log("Sorry, we currently do not have that many in stock, please check back later.");
-				startApp();
+				setTimeout(function () {
+					startApp();
+				}, 5000);
 			}
 		});
 	});
