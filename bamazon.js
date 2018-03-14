@@ -1,22 +1,25 @@
+// Node Dependencies set
 var mysql = require('mysql');
 var inquirer = require('inquirer');
 var Table = require('cli-table');
 
+// Create a connection to MYSQL
 var connection = mysql.createConnection({
 	host: 'localhost',
 	port: 3306,
 	user: 'root',
 	password: '',
 	database: 'bamazonDB'
-})
+});
 
-connection.connect(function(err) {
+// begin connection to mysql, begin app
+connection.connect(function (err) {
 	if (err) throw err;
-	// console.log('Connected as id' + connection.threadId);
-	startBuying();
-})
+	startApp();
+});
 
-function printStuff(res) {
+// define function to build products table to display
+function ShowProducts(res) {
 	var table = new Table({
 		head: ['Item ID', 'Product Name', 'Cost']
 		, colWidths: [10, 45, 10]
@@ -25,15 +28,19 @@ function printStuff(res) {
 		table.push([res[i].item_id, res[i].product_name, res[i].price]);
 	}
 	console.log(table.toString());
-}
+};
 
-var startBuying = function() {
-	connection.query('SELECT * FROM products', function(err, res) {
-		printStuff(res);
-		// var choiceArray = [];
-		// for (var i = 0; i < res.length; i++) {
-		// 	choiceArray.push(res[i].product_name);
-		// }
+// define function that captures input, calculates quantity, is sale valid or not
+var startApp = function () {
+	// query mysql, get all products returned
+	connection.query('SELECT * FROM products', function (err, res) {
+		// call function to display returned products
+		ShowProducts(res);
+		var choiceArray = [];
+		for (var i = 0; i < res.length; i++) {
+			choiceArray.push(res[i]);
+		}
+		// begin inquirer to capture inputs
 		inquirer.prompt([{
 			name: 'item',
 			type: 'input',
@@ -43,30 +50,36 @@ var startBuying = function() {
 			name: 'quantity',
 			type: 'input',
 			message: 'How many would you like to purchase?'
-		}]).then(function(answer) {
+		}]).then(function (answer) {
 			// console.log(answer);
-			// var item_id = answer.item;
-			// console.log(item_id);
-            // var chosenItem = res.item_id;
-            
-            var chosenItem = connection.query('SELECT * FROM products WHERE ?', [{ item_id: answer.item }]);
-
-            // for (var i = 0; i < res.length; i++) {
-            //     console.log(res[i].item_id + " |" + answer.choice);
-            //     if (res[i].item_id == answer.choice) {
-            //         chosenItem = res[i];
-            //     }
-            // }
+			var itemChoice = parseInt(answer.item);
+			// console.log(itemChoice);
+			var chosenItem = choiceArray[itemChoice - 1];
 			// console.log(chosenItem);
-            var newQuantity = chosenItem.stock_quantity - parseInt(answer.quantity);
-            // console.log(newQuantity);
-			if (newQuantity >= 0) {
-				connection.query('UPDATE products SET ?? WHERE itemID = ?', [{ stock_quantity: newQuantity }, item_id]);
-				startBuying();
+
+
+			// calculate quantity of chosenItem
+			var itemQuantity = parseInt(answer.quantity);
+			var updatedQuantity = chosenItem.stock_quantity - itemQuantity;
+			// console.log(updatedQuantity);
+
+			// if quantity selected does not exceed quantity in stock, update MYSQL
+			if (updatedQuantity >= 0) {
+				console.log("Your purchase was a success! Thank you for your business");
+				connection.query(
+					'UPDATE products SET ? WHERE ?', [
+						{
+							stock_quantity: updatedQuantity
+						},
+						{
+							item_id: itemChoice
+						}
+					]);
+				startApp();
 			} else {
-				console.log('There are not enough in stock for you to purchase that many.');
-				startBuying();
+				console.log("Sorry, we currently do not have that many in stock, please check back later.");
+				startApp();
 			}
-		})
-	})
-}
+		});
+	});
+};
